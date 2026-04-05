@@ -914,7 +914,7 @@ export default function DisasterDroneSimulator() {
         </div>
 
         <div style={{ padding: '6px 14px 10px', borderTop: '1px solid rgba(0,180,220,0.06)', fontSize: 8, color: '#1e3040', fontFamily: 'monospace', letterSpacing: 1 }}>
-          WASD/QE FLY · SHIFT BOOST · T THERMAL · ESC EXIT
+          WASD/QE FLY · SHIFT BOOST · T THERMAL · ESC EXIT · DBL-CLICK INSPECT
         </div>
       </div>
     </div>

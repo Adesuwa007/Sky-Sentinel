@@ -398,6 +398,123 @@ const ALTITUDE_MAX = 80;
 /* ────────────────────────────────────────────────────────────────────── */
 
 /* ────────────────────────────────────────────────────────────────────────────
+   CAMERA INSPECTOR — double-click to reposition orbit target (look-at point)
+   Only active in third-person (non-FPV) mode. Drone and mission state unchanged.
+   ──────────────────────────────────────────────────────────────────────────── */
+function CameraInspector({
+  orbitRef,
+  firstPerson,
+}: {
+  orbitRef: React.RefObject<any>;
+  firstPerson: boolean;
+}) {
+  const { camera, gl, size } = useThree();
+  // Focus target for smooth orbit target animation
+  const animFrom   = useRef(new THREE.Vector3());
+  const animTo     = useRef(new THREE.Vector3());
+  const animT      = useRef(1); // 1 = done, 0 = just started
+  const ANIM_DUR   = 0.55; // seconds
+
+  // Visual focus-ring state
+  const ringRef      = useRef<THREE.Mesh>(null);
+  const ringOpacity  = useRef(0);
+  const ringPos      = useRef(new THREE.Vector3());
+
+  // Floor plane for raycasting (matches ground plane)
+  const floorPlane = useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+    [],
+  );
+
+  useEffect(() => {
+    if (firstPerson) return; // disabled in FPV
+
+    const canvas = gl.domElement;
+    const raycaster = new THREE.Raycaster();
+
+    const onDblClick = (e: MouseEvent) => {
+      if (!orbitRef.current) return;
+
+      // Convert mouse to NDC
+      const rect = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width)  * 2 - 1,
+        -((e.clientY - rect.top)  / rect.height) * 2 + 1,
+      );
+
+      raycaster.setFromCamera(ndc, camera);
+
+      // Intersect with the horizontal floor plane (y=0)
+      const hit = new THREE.Vector3();
+      const intersected = raycaster.ray.intersectPlane(floorPlane, hit);
+      if (!intersected) return;
+
+      // Clamp within map bounds (mapSize = 72)
+      const HALF = 36;
+      hit.x = THREE.MathUtils.clamp(hit.x, -HALF, HALF);
+      hit.z = THREE.MathUtils.clamp(hit.z, -HALF, HALF);
+      hit.y = 0;
+
+      // Start target animation
+      animFrom.current.copy(orbitRef.current.target);
+      animTo.current.copy(hit);
+      animT.current = 0;
+
+      // Trigger ring fade-in at hit point
+      ringPos.current.copy(hit);
+      ringOpacity.current = 0.85;
+    };
+
+    canvas.addEventListener('dblclick', onDblClick);
+    return () => canvas.removeEventListener('dblclick', onDblClick);
+  }, [firstPerson, camera, gl, floorPlane, orbitRef, size]);
+
+  useFrame((_, delta) => {
+    // Animate orbit target
+    if (animT.current < 1 && orbitRef.current) {
+      animT.current = Math.min(1, animT.current + delta / ANIM_DUR);
+      // Smooth ease-out cubic
+      const t = 1 - Math.pow(1 - animT.current, 3);
+      orbitRef.current.target.lerpVectors(animFrom.current, animTo.current, t);
+      orbitRef.current.update();
+    }
+
+    // Fade ring out
+    if (ringOpacity.current > 0) {
+      ringOpacity.current = Math.max(0, ringOpacity.current - delta * 1.6);
+      if (ringRef.current) {
+        const mat = ringRef.current.material as THREE.MeshBasicMaterial;
+        mat.opacity = ringOpacity.current;
+        // Expand ring outward as it fades
+        const scale = 1 + (0.85 - ringOpacity.current) * 3.5;
+        ringRef.current.scale.setScalar(scale);
+        ringRef.current.visible = ringOpacity.current > 0.01;
+      }
+    }
+  });
+
+  return (
+    <mesh
+      ref={ringRef}
+      position={ringPos.current}
+      rotation={[-Math.PI / 2, 0, 0]}
+      visible={false}
+    >
+      <ringGeometry args={[0.55, 0.95, 48]} />
+      <meshBasicMaterial
+        color="#33eeff"
+        transparent
+        opacity={0}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
    MAIN SCENE
    ──────────────────────────────────────────────────────────────────────────── */
 
@@ -1431,6 +1548,8 @@ export default function Scene({
         minPolarAngle={0} maxPolarAngle={Math.PI}
         maxDistance={200} minDistance={5} target={[0, 4, 0]} makeDefault
       />}
+      {/* Double-click to inspect any point in 3D space (moves camera pivot only) */}
+      {!firstPerson && <CameraInspector orbitRef={orbitRef} firstPerson={firstPerson} />}
       {deviceConfig.enablePostProcessing && <MissionBloom thermalVision={thermalVision} isScanning={isScanning} />}
       {deviceConfig.targetFPS > 0 && <FPSLimiter fps={deviceConfig.targetFPS} />}
     </>

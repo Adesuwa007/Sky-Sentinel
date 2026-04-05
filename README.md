@@ -46,15 +46,15 @@ graph TD
     classDef server fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc;
     classDef sim fill:#312e81,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
     
-    subgraph Ground Rescue Edge [Mobile Interface]
+    subgraph GroundRescueEdge [Mobile Interface]
         Rescue[Rescue Team App]:::ui
     end
 
-    subgraph Backend [Next.js Central API]
+    subgraph BackendAPI [Next.js Central API]
         State[Mission State Broker]:::server
     end
 
-    subgraph Command Center [Desktop Frontend]
+    subgraph CommandCenter [Desktop Frontend]
         CC[Command Mission UI]:::ui
         3D[Three.js Drone Simulation]:::sim
         CC <-->|Dispatches Real-time Telemetry| 3D

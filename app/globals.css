@@ -1,0 +1,279 @@
+@import "tailwindcss";
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --background: #000018;
+  --foreground: #c8dde8;
+  --glass-bg: rgba(4,14,28,0.72);
+  --glass-border: rgba(0,180,220,0.12);
+  --glass-glow: rgba(0,200,255,0.04);
+  --accent-cyan: #33ddf5;
+  --accent-green: #44ff90;
+  --accent-red: #ff3b3b;
+  --accent-amber: #ffd84f;
+  --panel-radius: 8px;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar styling for sidebar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 180, 220, 0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 180, 220, 0.35); }
+
+/* Prevent text selection on click (drone controls area) */
+canvas { display: block; user-select: none; }
+
+/* ═══════════════════════════════════════════
+   GLASSMORPHISM PANELS
+   ═══════════════════════════════════════════ */
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--panel-radius);
+  box-shadow:
+    0 0 20px var(--glass-glow),
+    inset 0 0 20px rgba(0,200,255,0.015);
+}
+
+.glass-panel-warm {
+  background: rgba(20,8,4,0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,100,50,0.12);
+  border-radius: var(--panel-radius);
+  box-shadow:
+    0 0 20px rgba(255,80,30,0.04),
+    inset 0 0 20px rgba(255,80,30,0.015);
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════ */
+
+.sidebar {
+  width: 320px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(4,14,28,0.96) 0%, rgba(2,8,18,0.98) 100%);
+  border-left: 1px solid rgba(0,180,220,0.12);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-thermal {
+  background: linear-gradient(180deg, rgba(12,4,8,0.96) 0%, rgba(8,2,4,0.98) 100%);
+  border-left: 1px solid rgba(255,100,50,0.12);
+}
+
+/* ═══════════════════════════════════════════
+   MISSION LOG
+   ═══════════════════════════════════════════ */
+
+@keyframes logEntryIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.mission-log-entry {
+  animation: logEntryIn 0.3s ease-out;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0,180,220,0.04);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #5a8a9a;
+}
+
+.mission-log-entry:last-child {
+  border-bottom: none;
+  color: #8abbe8;
+}
+
+.mission-log-entry .log-time {
+  color: #334455;
+  margin-right: 6px;
+  font-size: 8px;
+}
+
+.mission-log-entry .log-icon {
+  margin-right: 4px;
+  font-size: 8px;
+}
+
+/* ═══════════════════════════════════════════
+   THERMAL CAMERA EFFECTS — REALISTIC RESCUE DRONE
+   ═══════════════════════════════════════════ */
+
+/* Thermal scan line — horizontal sweep top-to-bottom (repeating) */
+@keyframes thermalScanLine {
+  0% { top: -4%; opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { top: 104%; opacity: 0.5; }
+}
+
+.thermal-scanline {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,80,30,0.06) 10%,
+    rgba(255,160,80,0.18) 35%,
+    rgba(255,220,120,0.25) 50%,
+    rgba(255,160,80,0.18) 65%,
+    rgba(255,80,30,0.06) 90%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 16px rgba(255,150,50,0.15),
+    0 0 40px rgba(255,100,50,0.08),
+    0 -2px 6px rgba(255,200,100,0.1),
+    0 2px 6px rgba(255,200,100,0.1);
+  animation: thermalScanLine 2.5s linear infinite;
+  z-index: 10;
+}
+
+/* Second scan line offset for density */
+.thermal-scanline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -40px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,120,60,0.08) 20%,
+    rgba(255,180,100,0.12) 50%,
+    rgba(255,120,60,0.08) 80%,
+    transparent 100%
+  );
+}
+
+/* Thermal noise grain overlay — denser for realistic camera feel */
+@keyframes thermalNoise {
+  0% { background-position: 0 0; }
+  10% { background-position: -30px 20px; }
+  20% { background-position: 50px -30px; }
+  30% { background-position: -10px 50px; }
+  40% { background-position: 40px -10px; }
+  50% { background-position: -20px 40px; }
+  60% { background-position: 30px 20px; }
+  70% { background-position: -40px -20px; }
+  80% { background-position: 20px 30px; }
+  90% { background-position: -30px -40px; }
+  100% { background-position: 0 0; }
+}
+
+.thermal-noise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: thermalNoise 0.12s steps(6) infinite;
+  mix-blend-mode: overlay;
+  z-index: 9;
+}
+
+/* Thermal vignette — darker corners + slight blur for camera feel */
+.thermal-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(0,0,10,0.3) 55%,
+    rgba(0,0,5,0.65) 85%,
+    rgba(0,0,0,0.85) 100%
+  );
+  z-index: 8;
+}
+
+/* Thermal blur — soft edges */
+.thermal-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(0.4px);
+  -webkit-backdrop-filter: blur(0.4px);
+  mask-image: radial-gradient(ellipse at center, transparent 60%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 60%, black 100%);
+}
+
+/* ═══════════════════════════════════════════
+   LIDAR SCAN EFFECTS
+   ═══════════════════════════════════════════ */
+
+/* LiDAR scan glow pulse */
+@keyframes lidarPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.lidar-scan-active {
+  animation: lidarPulse 1.5s ease-in-out infinite;
+}
+
+/* LiDAR scan overlay — adds subtle grid lines during scanning */
+@keyframes lidarScanOverlay {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+.lidar-scan-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,255,220,0.015) 0px,
+      transparent 1px,
+      transparent 4px
+    );
+  animation: lidarScanOverlay 2s linear infinite;
+  z-index: 7;
+}
+
+/* ═══════════════════════════════════════════
+   STATUS BADGE PULSE
+   ═══════════════════════════════════════════ */
+
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 4px currentColor; }
+  50% { box-shadow: 0 0 12px currentColor, 0 0 20px currentColor; }
+}
+
+.status-pulse {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════
+   LOADING ANIMATION
+   ═══════════════════════════════════════════ */
+
+@keyframes loadPulse {
+  0% { width: 20%; }
+  50% { width: 80%; }
+  100% { width: 20%; }
+}

@@ -16,7 +16,7 @@ We built **SkySentinel** because during mass-scale disasters like earthquakes or
 
 We didn't just want to build a cool drone flight simulator—we wanted to build a **complete, closed-loop ecosystem**. 
 
-SkySentinel bridges the gap between high-altitude drone scouting and boots-on-the-ground rescue via a synchronized web platform. A commanding officer can deploy an autonomous drone, run rapid LiDAR sweeps, and use thermal mapping to identify survivors. An AI triage system then processes this raw data to generate extraction routes. Those exact routes are immediately beamed to the mobile devices of on-site rescue teams, who use Augmented Reality (AR) to see holographic waypoints guiding them through the wreckage safely.
+SkySentinel bridges the gap between high-altitude drone scouting and boots-on-the-ground rescue via a synchronized web platform. A commanding officer can deploy an autonomous drone, run rapid LiDAR sweeps, and use thermal mapping to identify survivors. An AI triage system then processes this raw data to generate extraction routes. Those exact routes are immediately beamed to the mobile devices of on-site rescue teams, who use our synchronized mobile app to navigate the wreckage safely.
 
 ---
 
@@ -30,9 +30,8 @@ SkySentinel bridges the gap between high-altitude drone scouting and boots-on-th
 </div>
 
 <div align="center">
-  <img src="public/docs/thermal.png" alt="Thermal Vision Mode" width="400" />
-  <img src="public/docs/ar-mobile.png" alt="Mobile AR View" width="400" />
-  <p><i>Left: High-contrast thermal imaging mapping structural hazards. Right: What the rescue operatives see on their phones (WebXR).</i></p>
+  <img src="public/docs/thermal.png" alt="Thermal Vision Mode" width="800" />
+  <p><i>High-contrast thermal imaging mapping structural hazards, survivor heat signatures, and safety routes.</i></p>
 </div>
 
 ---
@@ -47,10 +46,8 @@ graph TD
     classDef server fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc;
     classDef sim fill:#312e81,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
     
-    subgraph Ground Rescue Edge [Mobile AR Interface]
+    subgraph Ground Rescue Edge [Mobile Interface]
         Rescue[Rescue Team App]:::ui
-        AR[WebXR Holographic Overlay]:::ui
-        Rescue --> AR
     end
 
     subgraph Backend [Next.js Central API]
@@ -71,7 +68,7 @@ graph TD
 ### Flow Breakdown
 1. **The Simulation Engine:** Built on `React Three Fiber`, handling complex mathematical raycasting for LiDAR, drone flight physics with virtual inertia, and custom volumetric shaders for thermal vision.
 2. **The Command UI:** A React dashboard pulling active data out of the 3D canvas and sending fire-and-forget sync packets to the Next.js API layer on every mission state transition. 
-3. **The Rescue Client:** A lightweight mobile-first interface that polls the server to receive AI-generated navigational graphs, rendering them in real physical space using standard `WebXR`.
+3. **The Rescue Client:** A lightweight mobile-first interface that polls the server to receive AI-generated navigational graphs, rendering them clearly for ground personnel.
 
 ---
 
@@ -120,8 +117,8 @@ npm run dev
 ```
 *Head over to `http://localhost:3000` to assume command.*
 
-### 4. Testing the Mobile AR
-To test the Augmented Reality ground team interface (`/rescue`), your mobile browser requires a secure HTTPS context. 
+### 4. Testing the Mobile App
+To test the synchronized ground team interface (`/rescue`), your mobile browser requires a secure HTTPS context. 
 If your CLI supports it natively: `next dev --experimental-https`
 Otherwise, we highly recommend piping it through ngrok:
 ```bash
@@ -137,3 +134,4 @@ We're incredibly proud of what we built in such a short hackathon window, but he
 1. **WebSocket Refactor:** Replacing our lightweight 1-second API polling with pure, low-latency socket pipelines so the ground teams see the extraction route literally drawing itself in front of them with zero lag.
 2. **LLM Triage Agents:** Piping the survivor health/hazard data organically retrieved from the mapped matrix into a localized LLM to generate custom, rapid medical instructions for the extraction team based on what the thermal optics saw. 
 3. **Wind & Aerodynamics:** Adding global wind vector matrices that naturally push and sway the drone, forcing commanders to manually combat drafts when navigating tight collapsed structures.
+4. **Augmented Reality (WebXR):** While we currently have the synchronized mobile UI running, we plan to fully implement WebXR so ground teams can see the exact holographic waypoints overlaid onto the real world using their device cameras.
